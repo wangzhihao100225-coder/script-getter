@@ -1,22 +1,33 @@
-name: Bili Sync
+Name: Bili Sync
 
 on:
   schedule:
-    - cron: '0 2 * * *' # 北京时间 10 点
-  workflow_dispatch: # 允许手动点按钮
+    - cron: '0 2 * * *' # 北京时间 10 点，UTC 时间 2 点
+  workflow_dispatch: # 允许手动点按钮触发
 
 permissions:
-  contents: write
+  contents: write # 必须开启，否则无法把清洗后的脚本存回仓库
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v4 # 检出你的仓库代码
+
+      - uses: actions/setup-go@v5 # 配置 Go 环境
         with:
           go-version: '1.21'
-      - run: go run main.go
-      - uses: stefanzweifel/git-auto-commit-action@v5
+          cache: true # 开启缓存，下次运行更快
+
+      - name: Run Cleanup Program
+        run: |
+          # 如果你还没创建 go.mod，这一行会自动处理
+          if [ ! -f go.mod ]; then go mod init script-sync; fi
+          go run main.go
+
+      - name: Commit and Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Auto Sync"
+          commit_message: "Auto Sync: 更新去广告全家桶脚本"
+          # 🚀 关键：确保匹配到所有生成的 js 和 conf 文件
+          file_pattern: "*.js *.conf" 
