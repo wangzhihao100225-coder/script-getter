@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-// ======= 务必修改这两行 =======
+// ======= 务必修改这两行 =====
 const (
 	GitHubUser = "wangzhihao100225-coder" 
 	GitHubRepo = "script-getter"     
