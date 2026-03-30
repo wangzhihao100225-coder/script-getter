@@ -66,7 +66,7 @@ func main() {
 		{
 			// 🆕 新增：小红书
 			ConfURL:  "https://ddgksf2013.top/rewrite/XiaoHongShuAds.conf",
-			JSURL:    "https://ddgksf2013.top/scripts/xiaohongshu.ads.js",
+			JSURL:    "https://ddgksf2013.top/scripts/redbook.ads.js",
 			ConfFile: "XiaoHongShuAds.conf",
 			JSFile:   "xiaohongshu.ads.js",
 		},
