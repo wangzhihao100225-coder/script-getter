@@ -52,16 +52,12 @@ func main() {
 			JSFile:   "bilibili.ads.js",
 		},
 		{
-			ConfURL:  "https://ddgksf2013.top/rewrite/BaiduPanAds.conf",
 			JSURL:    "https://ddgksf2013.top/scripts/bdpan.ads.js",
-			ConfFile: "BaiduPanAds.conf",
-			JSFile:   "bdpan.ads.js",
+			JSFile:   "bdpan.ads.conf",
 		},
 		{
-			ConfURL:  "https://ddgksf2013.top/rewrite/ZhihuAds.conf",
-			JSURL:    "https://ddgksf2013.top/scripts/zhihu.ads.js",
-			ConfFile: "ZhihuAds.conf",
-			JSFile:   "zhihu.ads.js",
+			JSURL:    "https://ddgksf2013.top/scripts/zhihu.ads.js
+			JSFile:   "zhihu.ads.conf",
 		},
 		{
 			// 🆕 新增：小红书
