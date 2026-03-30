@@ -9,10 +9,9 @@ import (
 	"sync"
 )
 
-// ======= 务必修改这两行 =====
 const (
 	GitHubUser = "wangzhihao100225-coder" 
-	GitHubRepo = "script-getter"     
+	GitHubRepo = "script-getter" 
 )
 
 const UA = "Surge/3035 CFNetwork/1410.0.3 Darwin/22.6.0"
@@ -25,6 +24,9 @@ type SyncTask struct {
 }
 
 func fetchWithUA(url string) (string, error) {
+	if url == "" {
+		return "", fmt.Errorf("URL 不能为空")
+	}
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -52,19 +54,24 @@ func main() {
 			JSFile:   "bilibili.ads.js",
 		},
 		{
-			ConfURL:    "https://ddgksf2013.top/scripts/bdpan.ads.js",
-			ConfFile:   "bdpan.ads.conf",
+			// 百度网盘：配置和脚本是同一个 URL
+			ConfURL:  "https://ddgksf2013.top/scripts/bdpan.ads.js",
+			JSURL:    "https://ddgksf2013.top/scripts/bdpan.ads.js",
+			ConfFile: "BaiduPanAds.conf", // 存为 .conf 方便 Stash 识别
+			JSFile:   "bdpan.ads.js",
 		},
 		{
-			ConfURL:    "https://ddgksf2013.top/scripts/zhihu.ads.js
-			ConfFile:   "zhihu.ads.conf",
+			// 知乎：配置和脚本是同一个 URL
+			ConfURL:  "https://ddgksf2013.top/scripts/zhihu.ads.js",
+			JSURL:    "https://ddgksf2013.top/scripts/zhihu.ads.js",
+			ConfFile: "ZhihuAds.conf", // 存为 .conf 方便 Stash 识别
+			JSFile:   "zhihu.ads.js",
 		},
 		{
-			// 🆕 新增：小红书
 			ConfURL:  "https://ddgksf2013.top/rewrite/XiaoHongShuAds.conf",
 			JSURL:    "https://ddgksf2013.top/scripts/redbook.ads.js",
 			ConfFile: "XiaoHongShuAds.conf",
-			JSFile:   "xiaohongshu.ads.js",
+			JSFile:   "redbook.ads.js",
 		},
 	}
 
@@ -74,29 +81,30 @@ func main() {
 		go func(t SyncTask) {
 			defer wg.Done()
 			
-			// 下载 JS
+			// 1. 下载脚本源文件
 			jsContent, err := fetchWithUA(t.JSURL)
 			if err != nil {
-				fmt.Printf("❌ %s 下载失败: %v\n", t.JSFile, err)
+				fmt.Printf("❌ %s (脚本) 下载失败: %v\n", t.JSFile, err)
 				return
 			}
 			os.WriteFile(t.JSFile, []byte(jsContent), 0644)
 
-			// 下载 Conf
+			// 2. 下载配置源文件（虽然对于百度/知乎来说内容一样）
 			confContent, err := fetchWithUA(t.ConfURL)
 			if err != nil {
-				fmt.Printf("❌ %s 下载失败: %v\n", t.ConfFile, err)
+				fmt.Printf("❌ %s (配置) 下载失败: %v\n", t.ConfFile, err)
 				return
 			}
 
-			// 链接替换逻辑
+			// 3. 替换逻辑：把配置里指向 ddgksf2013 的链接换成你 GitHub 的 Raw 链接
 			myJSURL := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/main/%s", GitHubUser, GitHubRepo, t.JSFile)
 			newConfContent := strings.ReplaceAll(confContent, t.JSURL, myJSURL)
 
+			// 4. 保存为 .conf 文件供 Stash 订阅
 			os.WriteFile(t.ConfFile, []byte(newConfContent), 0644)
-			fmt.Printf("✅ %s 已就绪\n", t.ConfFile)
+			fmt.Printf("✅ %s 同步并替换完成\n", t.ConfFile)
 		}(task)
 	}
 	wg.Wait()
-	fmt.Println("🎉 全家桶同步任务全部完成！")
+	fmt.Println("🎉 完美！所有脚本和“披着JS外衣的配置”均已清洗完成！")
 }
