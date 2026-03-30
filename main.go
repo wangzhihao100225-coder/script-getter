@@ -9,13 +9,20 @@ import (
 	"sync"
 )
 
-// ======= 必须修改以下两行 =======
+// ======= 务必修改这两行 =======
 const (
-	GitHubUser = "wangzhihao100225-coder" 
-	GitHubRepo = "script-getter"     
+	GitHubUser = "你的用户名" 
+	GitHubRepo = "你的仓库名"     
 )
 
 const UA = "Surge/3035 CFNetwork/1410.0.3 Darwin/22.6.0"
+
+type SyncTask struct {
+	ConfURL  string
+	JSURL    string
+	ConfFile string
+	JSFile   string
+}
 
 func fetchWithUA(url string) (string, error) {
 	client := &http.Client{}
@@ -24,55 +31,76 @@ func fetchWithUA(url string) (string, error) {
 		return "", err
 	}
 	req.Header.Set("User-Agent", UA)
-	req.Header.Set("Accept", "*/*")
-
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("HTTP %d", resp.StatusCode)
 	}
-
 	body, err := io.ReadAll(resp.Body)
 	return string(body), err
 }
 
 func main() {
-	var wg sync.WaitGroup
-	var jsContent, confContent string
-	var jsErr, confErr error
-
-	jsURL := "https://ddgksf2013.top/scripts/bilibili.ads.js"
-	confURL := "https://ddgksf2013.top/rewrite/BiliBiliAds.conf"
-
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		jsContent, jsErr = fetchWithUA(jsURL)
-	}()
-	go func() {
-		defer wg.Done()
-		confContent, confErr = fetchWithUA(confURL)
-	}()
-	wg.Wait()
-
-	if jsErr != nil || confErr != nil {
-		fmt.Printf("下载失败: JS(%v), Conf(%v)\n", jsErr, confErr)
-		return
+	tasks := []SyncTask{
+		{
+			ConfURL:  "https://ddgksf2013.top/rewrite/BiliBiliAds.conf",
+			JSURL:    "https://ddgksf2013.top/scripts/bilibili.ads.js",
+			ConfFile: "BiliBiliAds.conf",
+			JSFile:   "bilibili.ads.js",
+		},
+		{
+			ConfURL:  "https://ddgksf2013.top/rewrite/BaiduPanAds.conf",
+			JSURL:    "https://ddgksf2013.top/scripts/bdpan.ads.js",
+			ConfFile: "BaiduPanAds.conf",
+			JSFile:   "bdpan.ads.js",
+		},
+		{
+			ConfURL:  "https://ddgksf2013.top/rewrite/ZhihuAds.conf",
+			JSURL:    "https://ddgksf2013.top/scripts/zhihu.ads.js",
+			ConfFile: "ZhihuAds.conf",
+			JSFile:   "zhihu.ads.js",
+		},
+		{
+			// 🆕 新增：小红书
+			ConfURL:  "https://ddgksf2013.top/rewrite/XiaoHongShuAds.conf",
+			JSURL:    "https://ddgksf2013.top/scripts/xiaohongshu.ads.js",
+			ConfFile: "XiaoHongShuAds.conf",
+			JSFile:   "xiaohongshu.ads.js",
+		},
 	}
 
-	// 1. 保存原始脚本
-	os.WriteFile("bilibili.ads.js", []byte(jsContent), 0644)
+	var wg sync.WaitGroup
+	for _, task := range tasks {
+		wg.Add(1)
+		go func(t SyncTask) {
+			defer wg.Done()
+			
+			// 下载 JS
+			jsContent, err := fetchWithUA(t.JSURL)
+			if err != nil {
+				fmt.Printf("❌ %s 下载失败: %v\n", t.JSFile, err)
+				return
+			}
+			os.WriteFile(t.JSFile, []byte(jsContent), 0644)
 
-	// 2. 处理配置文件：把墨鱼的 JS 链接换成你自己的 GitHub Raw 链接
-	myJSURL := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/main/bilibili.ads.js", GitHubUser, GitHubRepo)
-	newConfContent := strings.ReplaceAll(confContent, jsURL, myJSURL)
+			// 下载 Conf
+			confContent, err := fetchWithUA(t.ConfURL)
+			if err != nil {
+				fmt.Printf("❌ %s 下载失败: %v\n", t.ConfFile, err)
+				return
+			}
 
-	// 3. 保存修改后的配置文件
-	os.WriteFile("BiliBiliAds.conf", []byte(newConfContent), 0644)
+			// 链接替换逻辑
+			myJSURL := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/main/%s", GitHubUser, GitHubRepo, t.JSFile)
+			newConfContent := strings.ReplaceAll(confContent, t.JSURL, myJSURL)
 
-	fmt.Println("✅ 脚本与配置已同步并完成链接替换")
+			os.WriteFile(t.ConfFile, []byte(newConfContent), 0644)
+			fmt.Printf("✅ %s 已就绪\n", t.ConfFile)
+		}(task)
+	}
+	wg.Wait()
+	fmt.Println("🎉 全家桶同步任务全部完成！")
 }
