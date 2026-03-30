@@ -1,4 +1,4 @@
-Name: Get
+name: Get
 
 on:
   schedule:
