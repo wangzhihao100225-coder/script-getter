@@ -11,8 +11,8 @@ import (
 
 // ======= 务必修改这两行 =======
 const (
-	GitHubUser = "你的用户名" 
-	GitHubRepo = "你的仓库名"     
+	GitHubUser = "wangzhihao100225-coder" 
+	GitHubRepo = "script-getter"     
 )
 
 const UA = "Surge/3035 CFNetwork/1410.0.3 Darwin/22.6.0"
