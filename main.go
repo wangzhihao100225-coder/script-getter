@@ -52,12 +52,12 @@ func main() {
 			JSFile:   "bilibili.ads.js",
 		},
 		{
-			JSURL:    "https://ddgksf2013.top/scripts/bdpan.ads.js",
-			JSFile:   "bdpan.ads.conf",
+			ConfURL:    "https://ddgksf2013.top/scripts/bdpan.ads.js",
+			ConfFile:   "bdpan.ads.conf",
 		},
 		{
-			JSURL:    "https://ddgksf2013.top/scripts/zhihu.ads.js
-			JSFile:   "zhihu.ads.conf",
+			ConfURL:    "https://ddgksf2013.top/scripts/zhihu.ads.js
+			ConfFile:   "zhihu.ads.conf",
 		},
 		{
 			// 🆕 新增：小红书
